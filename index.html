@@ -16,7 +16,7 @@
 <div class="wrap" id="app">
   <div class="hero">
     <div class="eyebrow">Engineer Pay Log · Deadhead Finder Research</div>
-    <h1>Deadhead Finder Sandbox v2</h1>
+    <h1>Deadhead Finder Sandbox v2.1</h1>
     <p class="sub">Official public schedules + legal transfer rules + a first Community Deadhead Notes layer. Still no E Stops, Q/equipment trains, or West Side Yard intercepts.</p>
   </div>
 
@@ -64,7 +64,7 @@
     <div class="actions"><button class="btn secondary smallbtn" id="clearLocalNotes" type="button">Clear my test notes</button></div>
   </section>
 
-  <section class="card"><h2>What this layer is testing</h2><div class="source"><p><strong>Legal route home:</strong> the first public deadhead must depart at or after the printed release, and every train-to-train transfer must be at least 5 minutes.</p><p><strong>Practical route home:</strong> the sandbox may also inspect service after the final working-train arrival. Anything before printed release or with a transfer under 5 minutes is clearly marked non-protected. A verified Community Deadhead Note can explain why EPL still surfaces it.</p><p><strong>Job 166 seed note:</strong> weekend 8702 is intentionally marked as a verified real-world connection so we can test the exact scenario that inspired this layer.</p></div></section>
+  <section class="card"><h2>What this layer is testing</h2><div class="source"><p><strong>Legal route home:</strong> the first public deadhead must depart at or after the printed release, and every train-to-train transfer must be at least 5 minutes. <strong>To-work arrival:</strong> this sandbox currently allows arrival exactly at report time, but flags the margin in the result so we can decide whether EPL should require an additional report buffer.</p><p><strong>Practical route home:</strong> the sandbox may also inspect service after the final working-train arrival. Anything before printed release or with a transfer under 5 minutes is clearly marked non-protected. A verified Community Deadhead Note can explain why EPL still surfaces it.</p><p><strong>Job 166 seed note:</strong> weekend 8702 is intentionally marked as a verified real-world connection so we can test the exact scenario that inspired this layer.</p></div></section>
 </div>
 
 <div id="noteModal" class="modalback hidden" aria-hidden="true">
@@ -145,9 +145,22 @@ function activeServices(date){
   return set;
 }
 
-function buildRuntime(date){
-  const active=activeServices(date), events=new Map(), deps=new Map(), tripEvents=new Map();
-  for(const [tripId,arr] of data.byTrip){const meta=data.tripMeta.get(tripId);if(!active.has(meta.service_id))continue;const evs=arr.map((e,i)=>({...e,key:`${tripId}|${i}`,idx:i,meta}));tripEvents.set(tripId,evs);evs.forEach(e=>{events.set(e.key,e);if(e.dep!=null){if(!deps.has(e.stopId))deps.set(e.stopId,[]);deps.get(e.stopId).push(e)}})}
+function buildRuntime(date,dayOffsets=[0]){
+  // A work tour can cross midnight. GTFS feeds are not consistent about whether
+  // a post-midnight trip is represented as 24:xx on the prior service day or
+  // 00:xx on the next service day. Build one graph that can contain both days.
+  const events=new Map(), deps=new Map(), tripEvents=new Map();
+  for(const dayOffset of dayOffsets){
+    const d=new Date(date); d.setDate(d.getDate()+dayOffset);
+    const active=activeServices(d), shift=dayOffset*1440;
+    for(const [rawTripId,arr] of data.byTrip){
+      const meta=data.tripMeta.get(rawTripId); if(!active.has(meta.service_id))continue;
+      const instanceId=`${dayOffset}|${rawTripId}`;
+      const evs=arr.map((e,i)=>({...e,rawTripId,tripId:instanceId,key:`${instanceId}|${i}`,idx:i,meta,arr:e.arr==null?null:e.arr+shift,dep:e.dep==null?null:e.dep+shift}));
+      tripEvents.set(instanceId,evs);
+      evs.forEach(e=>{events.set(e.key,e);if(e.dep!=null){if(!deps.has(e.stopId))deps.set(e.stopId,[]);deps.get(e.stopId).push(e)}})
+    }
+  }
   for(const arr of deps.values())arr.sort((a,b)=>a.dep-b.dep);
   return {events,deps,tripEvents};
 }
@@ -184,9 +197,14 @@ function reconstruct(rt,key,parent){
 
 function startEventsAt(rt,stopId,min,max){const a=rt.deps.get(stopId)||[];let i=lowerBound(a,min);const out=[];for(;i<a.length&&a[i].dep<=max;i++)out.push(a[i]);return out}
 
+function physicalRouteSig(r){
+  // Deduplicate GTFS variants that have different trip IDs/names but describe
+  // the same physical itinerary and clock times.
+  return r?.legs?.map(x=>`${x.from}|${x.to}|${x.dep}|${x.arr}`).join('>')||'';
+}
 function latestRoutes(rt,origin,dest,deadline,gap,maxLookback=8*60,limit=2){
   const list=(rt.deps.get(origin)||[]).filter(e=>e.dep<=deadline&&e.dep>=deadline-maxLookback).sort((a,b)=>b.dep-a.dep);const found=[];const seen=new Set();
-  for(const s of list.slice(0,70)){const r=dijkstraFromStarts(rt,[s],dest,gap,deadline);if(r){const sig=r.legs.map(x=>x.train).join('>');if(!seen.has(sig)){seen.add(sig);found.push(r);if(found.length>=limit)break}}}
+  for(const s of list.slice(0,90)){const r=dijkstraFromStarts(rt,[s],dest,gap,deadline);if(r){const sig=physicalRouteSig(r);if(!seen.has(sig)){seen.add(sig);found.push(r);if(found.length>=limit)break}}}
   return found;
 }
 
@@ -210,7 +228,7 @@ function noteMarkup(notes){if(!notes.length)return'';return notes.map(n=>`<div c
 function routeSig(r){return r?.legs?.map(x=>x.train).join('>')||''}
 function renderRoute(r,opt){if(!r)return'<div class="empty">No route found.</div>';const cls=opt.class,notes=opt.notes||[];let badges=`<span class="badge ${cls.key}">${cls.label}</span>`;if(notes.some(n=>(n.status||'').includes('VERIFIED')))badges+=`<span class="badge verified">VERIFIED INTEL</span>`;let html=`<div class="result"><div class="resulthead"><div class="resulttitle">${escapeHtml(opt.title)}</div><div class="badges">${badges}</div></div><div class="route">`;
  r.legs.forEach((leg,i)=>{html+=`<div class="leg"><div class="train">#${escapeHtml(leg.train)}</div><div class="place">${escapeHtml(stopName(leg.from))}<small>to ${escapeHtml(stopName(leg.to))}</small></div><div class="time">${fmtTime(leg.dep)}<small style="display:block;color:var(--muted);font-weight:600">→ ${fmtTime(leg.arr)}</small></div></div>`;if(i<r.gaps.length){const g=r.gaps[i],c=g.minutes>=5?'legal':g.minutes===4?'short':'tight';html+=`<div class="transfer ${c}">${g.minutes} min transfer at ${escapeHtml(stopName(g.stopId))} · ${g.minutes>=5?'legal':g.minutes===4?'short / not protected':'tight / possible'}</div>`}});
- html+='</div>';const p=[];if(opt.initialGap!=null)p.push(`${opt.initialGap} min from final working-train arrival to first deadhead`);if(opt.beforeRelease)p.push(`departs ${Math.round(opt.assignment.release-r.depart)} min before printed release`);p.push(`Depart ${fmtTime(r.depart)}`);p.push(`arrive ${fmtTime(r.arrive)}`);html+=`<div class="summary">${p.join(' · ')}</div>${noteMarkup(notes)}<div class="routeactions"><button class="btn secondary smallbtn addNote" type="button" data-route="${escapeHtml(JSON.stringify({direction:opt.direction,train:String(r.legs[0].train),signature:routeSig(r),title:opt.title}))}">Add community note</button></div></div>`;return html}
+ html+='</div>';const p=[];if(opt.initialGap!=null)p.push(`${opt.initialGap} min from final working-train arrival to first deadhead`);if(opt.beforeRelease)p.push(`departs ${Math.round(opt.assignment.release-r.depart)} min before printed release`);if(opt.reportTime!=null){const margin=Math.round(opt.reportTime-r.arrive);p.push(margin===0?'arrives exactly at report time':`${margin} min before report`)}p.push(`Depart ${fmtTime(r.depart)}`);p.push(`arrive ${fmtTime(r.arrive)}`);html+=`<div class="summary">${p.join(' · ')}</div>${noteMarkup(notes)}<div class="routeactions"><button class="btn secondary smallbtn addNote" type="button" data-route="${escapeHtml(JSON.stringify({direction:opt.direction,train:String(r.legs[0].train),signature:routeSig(r),title:opt.title}))}">Add community note</button></div></div>`;return html}
 function renderNotesPanel(a,date){const all=[...seedNotes,...loadLocalNotes()].filter(n=>n.job===a.job&&(!n.service||n.service===serviceType(date)));$('noteList').innerHTML=all.length?all.map(n=>`<div class="noteCard"><div class="noteTop"><div class="noteTitle">${escapeHtml(n.status||'COMMUNITY')} · Train ${escapeHtml(n.train)}</div><span class="badge ${n.status?.includes('VERIFIED')?'verified':'short'}">${escapeHtml(n.type||'note')}</span></div><div class="noteText">${escapeHtml(n.text)}</div><div class="noteMeta">${n.direction==='home'?'Going home':'To work'} · ${n.service?`${n.service==='weekday'?'Mon–Fri':'Sat–Sun'} · `:''}Job ${escapeHtml(n.job)}${n.local?' · saved only on this device':''}</div></div>`).join(''):'<div class="empty">No notes apply to this assignment/date yet. Add one from any route card.</div>'}
 function render(){
  const date=new Date($('workDate').value+'T12:00:00'),a=currentAssignment(date),home=$('homeStation').value;
@@ -221,13 +239,16 @@ function render(){
  renderNotesPanel(a,date);
  if(a.relief){$('toWorkResults').innerHTML='<div class="empty">This is a relief day for Job 166. Pick a working date.</div>';$('homeResults').innerHTML='<div class="empty">No regular Job 166 tour on this date.</div>';bindRouteButtons();return}
  const origin=findStopIdByName(home),work=findStopIdByName(a.workStation);if(!origin||!work){$('toWorkResults').innerHTML='<div class="empty">Could not match one of those stations in the loaded GTFS. Load the full feed or choose another station.</div>';$('homeResults').innerHTML='';bindRouteButtons();return}
- const rt=buildRuntime(date);if(!rt.events.size){$('toWorkResults').innerHTML='<div class="empty">No active GTFS service found for this date in the loaded feed.</div>';$('homeResults').innerHTML='';bindRouteButtons();return}
+ const rt=buildRuntime(date,[0]);if(!rt.events.size){$('toWorkResults').innerHTML='<div class="empty">No active GTFS service found for this date in the loaded feed.</div>';$('homeResults').innerHTML='';bindRouteButtons();return}
  const legalIn=latestRoutes(rt,origin,work,a.report,5,8*60,2),practicalIn=latestRoutes(rt,origin,work,a.report,1,8*60,1);let inHtml='';
- if(legalIn[0])inHtml+=renderRoute(legalIn[0],{title:'Latest legal route',class:routeClass(legalIn[0]),notes:notesFor(a,date,legalIn[0],'to'),direction:'to',assignment:a});
- if($('showPractical').checked&&practicalIn[0]&&(!legalIn[0]||practicalIn[0].depart>legalIn[0].depart+.1))inHtml+=renderRoute(practicalIn[0],{title:'Later practical option',class:routeClass(practicalIn[0]),notes:notesFor(a,date,practicalIn[0],'to'),direction:'to',assignment:a});
- if(legalIn[1])inHtml+=renderRoute(legalIn[1],{title:'Earlier legal backup',class:routeClass(legalIn[1]),notes:notesFor(a,date,legalIn[1],'to'),direction:'to',assignment:a});
+ if(legalIn[0])inHtml+=renderRoute(legalIn[0],{title:'Latest legal route',class:routeClass(legalIn[0]),notes:notesFor(a,date,legalIn[0],'to'),direction:'to',assignment:a,reportTime:a.report});
+ if($('showPractical').checked&&practicalIn[0]&&(!legalIn[0]||practicalIn[0].depart>legalIn[0].depart+.1))inHtml+=renderRoute(practicalIn[0],{title:'Later practical option',class:routeClass(practicalIn[0]),notes:notesFor(a,date,practicalIn[0],'to'),direction:'to',assignment:a,reportTime:a.report});
+ if(legalIn[1])inHtml+=renderRoute(legalIn[1],{title:'Earlier legal backup',class:routeClass(legalIn[1]),notes:notesFor(a,date,legalIn[1],'to'),direction:'to',assignment:a,reportTime:a.report});
  $('toWorkResults').innerHTML=inHtml||'<div class="empty">No public-GTFS route found before report in the search window.</div>';
- const legalHome=earliestRoute(rt,work,origin,a.release,0,5,a.release+8*60);const practicalHome=$('showPractical').checked?earliestRoute(rt,work,origin,a.finalArrival,1,1,a.finalArrival+8*60):null;let homeHtml='';
+ // Home searches span the work date and the following service date so post-midnight
+ // trains encoded as 00:xx on the next date are not silently missed.
+ const rtHome=buildRuntime(date,[0,1]);
+ const legalHome=earliestRoute(rtHome,work,origin,a.release,0,5,a.release+8*60);const practicalHome=$('showPractical').checked?earliestRoute(rtHome,work,origin,a.finalArrival,1,1,a.finalArrival+8*60):null;let homeHtml='';
  if(legalHome){homeHtml+=renderRoute(legalHome,{title:'Fastest legal route home',class:routeClass(legalHome),notes:notesFor(a,date,legalHome,'home'),direction:'home',assignment:a});}
  if(practicalHome){const same=legalHome&&routeSig(practicalHome)===routeSig(legalHome),gap=Math.round(practicalHome.depart-a.finalArrival),before=practicalHome.depart<a.release;if(!same&&(before||routeClass(practicalHome,gap).key!=='legal')){const ns=notesFor(a,date,practicalHome,'home');homeHtml+=renderRoute(practicalHome,{title:ns.some(n=>n.status?.includes('VERIFIED'))?'Verified practical option':'Faster practical option',class:routeClass(practicalHome,gap,before),notes:ns,direction:'home',assignment:a,initialGap:gap,beforeRelease:before});}}
  $('homeResults').innerHTML=homeHtml||'<div class="empty">No public-GTFS route home found in the search window.</div>';bindRouteButtons();
