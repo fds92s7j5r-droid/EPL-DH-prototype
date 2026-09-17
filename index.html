@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>EPL Deadhead Finder — Sandbox v2</title>
+<title>EPL Deadhead Finder — Sandbox v2.3</title>
 <meta name="theme-color" content="#111827">
 <style>
 :root{color-scheme:light dark;--bg:#f3f4f6;--panel:#fff;--text:#111827;--muted:#6b7280;--line:#d1d5db;--accent:#2563eb;--good:#166534;--goodbg:#dcfce7;--warn:#92400e;--warnbg:#fef3c7;--tight:#9a3412;--tightbg:#ffedd5;--info:#1e40af;--infobg:#dbeafe;--purple:#6d28d9;--purplebg:#ede9fe;--bad:#991b1b;--badbg:#fee2e2;--shadow:0 10px 28px rgba(0,0,0,.08)}
@@ -16,8 +16,8 @@
 <div class="wrap" id="app">
   <div class="hero">
     <div class="eyebrow">Engineer Pay Log · Deadhead Finder Research</div>
-    <h1>Deadhead Finder Sandbox v2.2.1</h1>
-    <p class="sub">Official public schedules + legal transfer rules + a first Community Deadhead Notes layer. Still no E Stops, Q/equipment trains, or West Side Yard intercepts.</p>
+    <h1>Deadhead Finder Sandbox v2.3</h1>
+    <p class="sub">Official public schedules + legal transfer rules + transfer-point intelligence + Community Deadhead Notes. Still no E Stops, Q/equipment trains, or West Side Yard intercepts.</p>
   </div>
 
   <section class="card">
@@ -52,6 +52,10 @@
       <label class="check"><input id="useCommunity" type="checkbox" checked> Use Community Deadhead Notes</label>
     </div>
     <div class="rulebar"><div class="rule legal"><strong>5+ minutes</strong>Legal train-to-train transfer</div><div class="rule short"><strong>4 minutes</strong>Short / not protected</div><div class="rule tight"><strong>1–3 minutes</strong>Tight, but potentially workable</div></div>
+    <div class="status" style="margin-top:12px">
+      <span class="dot"></span>
+      <span><strong>Transfer intelligence:</strong> direct rides and Jamaica transfers are preferred. Woodside is the secondary hub. Intermediate passenger-station transfers remain legal but are deprioritized; employee/operational-location transfers are strongly deprioritized unless they are the only sensible option.</span>
+    </div>
   </section>
 
   <section class="card"><h2>To work</h2><p class="sectionnote" id="toWorkNote"></p><div id="toWorkResults"></div></section>
@@ -64,7 +68,7 @@
     <div class="actions"><button class="btn secondary smallbtn" id="clearLocalNotes" type="button">Clear my test notes</button></div>
   </section>
 
-  <section class="card"><h2>What this layer is testing</h2><div class="source"><p><strong>Legal route home:</strong> the first public deadhead must depart at or after the printed release, and every train-to-train transfer must be at least 5 minutes. <strong>To-work arrival:</strong> a normal station report requires arrival at least 1 minute before report. West Side Yard reports require arrival at Penn 20 minutes before report; Jamaica Storage Yard reports require arrival at Jamaica 20 minutes before report.</p><p><strong>Practical route home:</strong> the sandbox may also inspect service after the final working-train arrival. Anything before printed release or with a transfer under 5 minutes is clearly marked non-protected. A verified Community Deadhead Note can explain why EPL still surfaces it.</p><p><strong>Job 166 seed note:</strong> weekend 8702 is intentionally marked as a verified real-world connection so we can test the exact scenario that inspired this layer.</p></div></section>
+  <section class="card"><h2>What this layer is testing</h2><div class="source"><p><strong>Legal timing:</strong> every train-to-train transfer must be at least 5 minutes. A normal station report requires arrival at least 1 minute before report. West Side Yard reports require arrival at Penn 20 minutes before report; Jamaica Storage Yard reports require arrival at Jamaica 20 minutes before report.</p><p><strong>Transfer intelligence:</strong> legality and route preference are separate. EPL prefers direct rides and Jamaica transfers first, Woodside second, then intermediate passenger stations. Employee/operational locations such as Hillside Facility are heavily deprioritized as transfer points. An intermediate transfer can still surface when it is the only workable route or meaningfully useful.</p><p><strong>Practical routing:</strong> the sandbox may also inspect service after the final working-train arrival. Anything before printed release or with a transfer under 5 minutes is clearly marked non-protected. A verified Community Deadhead Note can explain why EPL still surfaces it.</p><p><strong>Job 166 seed note:</strong> weekend 8702 is intentionally marked as a verified real-world connection so we can test the exact scenario that inspired this layer.</p></div></section>
 </div>
 
 <div id="noteModal" class="modalback hidden" aria-hidden="true">
@@ -169,15 +173,77 @@ class Heap{constructor(){this.a=[]}push(x){let i=this.a.push(x)-1;while(i){let p
 
 function lowerBound(arr,t){let l=0,r=arr.length;while(l<r){const m=(l+r)>>1;if(arr[m].dep<t)l=m+1;else r=m}return l}
 
-function dijkstraFromStarts(rt,startEvents,destId,transferGap,deadline=Infinity){
+function transferPreference(stopId){
+  const name=String(stopName(stopId)||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  if(name==='jamaica')return {tier:0,penalty:0,label:'Jamaica · preferred hub'};
+  if(name==='woodside')return {tier:1,penalty:20,label:'Woodside · secondary hub'};
+  if(name.includes('hillside facility')||name.includes("boland")||name.includes('storage yard')||name.includes('yard')||name.includes('facility'))
+    return {tier:3,penalty:120,label:`${stopName(stopId)} · employee/operational transfer`};
+  return {tier:2,penalty:50,label:`${stopName(stopId)} · intermediate transfer`};
+}
+function routeTransferPreference(r){
+  if(!r?.gaps?.length)return {tier:-1,penalty:0,label:'Direct / no train-to-train transfer',badges:[],details:[]};
+  const details=r.gaps.map(g=>({...transferPreference(g.stopId),stopId:g.stopId}));
+  const penalty=details.reduce((n,x)=>n+x.penalty,0);
+  const tier=Math.max(...details.map(x=>x.tier));
+  let label='Preferred hub transfer';
+  if(tier===1)label='Woodside transfer';
+  if(tier===2)label='Intermediate-station transfer';
+  if(tier===3)label='Employee/operational-location transfer';
+  return {tier,penalty,label,details};
+}
+function dijkstraFromStarts(rt,startEvents,destId,transferGap,deadline=Infinity,useTransferPreference=true){
   const heap=new Heap(),dist=new Map(),parent=new Map();
-  for(const s of startEvents){if(s.dep>deadline)continue;const old=dist.get(s.key);if(old==null||s.dep<old){dist.set(s.key,s.dep);parent.set(s.key,{prev:null,type:'start'});heap.push([s.dep,s.key])}}
-  let destKey=null;
-  while(heap.size){const [time,key]=heap.pop();if(time!==dist.get(key))continue;const e=rt.events.get(key);if(!e)continue;if(e.stopId===destId){destKey=key;break}
-    const trip=rt.tripEvents.get(e.tripId);const nxt=trip&&trip[e.idx+1];if(nxt&&nxt.arr<=deadline){const nt=nxt.arr;if(nt<(dist.get(nxt.key)??Infinity)){dist.set(nxt.key,nt);parent.set(nxt.key,{prev:key,type:'ride'});heap.push([nt,nxt.key])}}
-    if(parent.get(key)?.type!=='start'){const list=rt.deps.get(e.stopId)||[];const min=e.arr+transferGap;let j=lowerBound(list,min),seen=0;for(;j<list.length&&seen<18;j++){const d=list[j];if(d.dep>deadline||d.tripId===e.tripId)continue;if(d.dep-min>100)break;seen++;if(d.dep<(dist.get(d.key)??Infinity)){dist.set(d.key,d.dep);parent.set(d.key,{prev:key,type:'transfer'});heap.push([d.dep,d.key])}}}
+  for(const s of startEvents){
+    if(s.dep>deadline)continue;
+    const startCost=s.dep;
+    const old=dist.get(s.key);
+    if(old==null||startCost<old){
+      dist.set(s.key,startCost);
+      parent.set(s.key,{prev:null,type:'start'});
+      heap.push([startCost,s.key]);
+    }
   }
-  if(!destKey)return null;return reconstruct(rt,destKey,parent);
+  let destKey=null;
+  while(heap.size){
+    const [cost,key]=heap.pop();
+    if(cost!==dist.get(key))continue;
+    const e=rt.events.get(key);
+    if(!e)continue;
+    if(e.stopId===destId){destKey=key;break}
+    const trip=rt.tripEvents.get(e.tripId);
+    const nxt=trip&&trip[e.idx+1];
+    if(nxt&&nxt.arr<=deadline){
+      const rideCost=cost+Math.max(0,nxt.arr-e.arr);
+      if(rideCost<(dist.get(nxt.key)??Infinity)){
+        dist.set(nxt.key,rideCost);
+        parent.set(nxt.key,{prev:key,type:'ride'});
+        heap.push([rideCost,nxt.key]);
+      }
+    }
+    if(parent.get(key)?.type!=='start'){
+      const list=rt.deps.get(e.stopId)||[];
+      const min=e.arr+transferGap;
+      let j=lowerBound(list,min),seen=0;
+      for(;j<list.length&&seen<24;j++){
+        const d=list[j];
+        if(d.dep>deadline||d.tripId===e.tripId)continue;
+        if(d.dep-min>120)break;
+        seen++;
+        const pref=useTransferPreference?transferPreference(e.stopId):{penalty:0};
+        const transferCost=cost+Math.max(0,d.dep-e.arr)+pref.penalty;
+        if(transferCost<(dist.get(d.key)??Infinity)){
+          dist.set(d.key,transferCost);
+          parent.set(d.key,{prev:key,type:'transfer'});
+          heap.push([transferCost,d.key]);
+        }
+      }
+    }
+  }
+  if(!destKey)return null;
+  const r=reconstruct(rt,destKey,parent);
+  r.preference=routeTransferPreference(r);
+  return r;
 }
 
 function reconstruct(rt,key,parent){
@@ -202,13 +268,42 @@ function physicalRouteSig(r){
   // the same physical itinerary and clock times.
   return r?.legs?.map(x=>`${x.from}|${x.to}|${x.dep}|${x.arr}`).join('>')||'';
 }
+function routePreferencePenalty(r){return routeTransferPreference(r).penalty}
 function latestRoutes(rt,origin,dest,deadline,gap,maxLookback=8*60,limit=2){
-  const list=(rt.deps.get(origin)||[]).filter(e=>e.dep<=deadline&&e.dep>=deadline-maxLookback).sort((a,b)=>b.dep-a.dep);const found=[];const seen=new Set();
-  for(const s of list.slice(0,90)){const r=dijkstraFromStarts(rt,[s],dest,gap,deadline);if(r){const sig=physicalRouteSig(r);if(!seen.has(sig)){seen.add(sig);found.push(r);if(found.length>=limit)break}}}
-  return found;
+  const list=(rt.deps.get(origin)||[]).filter(e=>e.dep<=deadline&&e.dep>=deadline-maxLookback).sort((a,b)=>b.dep-a.dep);
+  const candidates=[],seen=new Set();
+  for(const s of list.slice(0,140)){
+    const r=dijkstraFromStarts(rt,[s],dest,gap,deadline,true);
+    if(!r)continue;
+    const sig=physicalRouteSig(r);
+    if(seen.has(sig))continue;
+    seen.add(sig);
+    r.preference=routeTransferPreference(r);
+    r.preferenceScore=r.depart-routePreferencePenalty(r);
+    candidates.push(r);
+  }
+  candidates.sort((a,b)=>(b.preferenceScore-a.preferenceScore)||(b.depart-a.depart)||(a.arrive-b.arrive));
+  return candidates.slice(0,limit);
 }
-
-function earliestRoute(rt,origin,dest,baseTime,initialGap,transferGap,deadline=baseTime+8*60){const starts=startEventsAt(rt,origin,baseTime+initialGap,deadline);return dijkstraFromStarts(rt,starts,dest,transferGap,deadline)}
+function earliestRoutes(rt,origin,dest,baseTime,initialGap,transferGap,deadline=baseTime+8*60,limit=4){
+  const starts=startEventsAt(rt,origin,baseTime+initialGap,deadline);
+  const candidates=[],seen=new Set();
+  for(const s of starts.slice(0,160)){
+    const r=dijkstraFromStarts(rt,[s],dest,transferGap,deadline,true);
+    if(!r)continue;
+    const sig=physicalRouteSig(r);
+    if(seen.has(sig))continue;
+    seen.add(sig);
+    r.preference=routeTransferPreference(r);
+    r.preferenceScore=r.arrive+routePreferencePenalty(r);
+    candidates.push(r);
+  }
+  candidates.sort((a,b)=>(a.preferenceScore-b.preferenceScore)||(a.arrive-b.arrive)||(a.depart-b.depart));
+  return candidates.slice(0,limit);
+}
+function earliestRoute(rt,origin,dest,baseTime,initialGap,transferGap,deadline=baseTime+8*60){
+  return earliestRoutes(rt,origin,dest,baseTime,initialGap,transferGap,deadline,1)[0]||null;
+}
 
 function findStopIdByName(name){const norm=s=>String(s).toLowerCase().replace(/madison/g,'').replace(/station/g,'').replace(/\s+/g,' ').trim();const n=norm(name);let exact=null,partial=null;for(const [id,s] of data.stops){const sn=norm(s.stop_name);if(sn===n){exact=id;break}if(sn.includes(n)||n.includes(sn))partial=partial||id}return exact||partial}
 function stopName(id){return data.stops.get(id)?.stop_name||id}
@@ -232,9 +327,13 @@ function routeClass(r,initialGap=null,preRelease=false){const gs=[...r.gaps.map(
 function notesFor(a,date,r,direction){if(!$('useCommunity').checked||!r?.legs?.length)return[];const train=String(r.legs[0].train);return [...seedNotes,...loadLocalNotes()].filter(n=>n.job===a.job&&n.direction===direction&&String(n.train)===train&&(!n.service||n.service===serviceType(date)))}
 function noteMarkup(notes){if(!notes.length)return'';return notes.map(n=>`<div class="intel"><strong>${escapeHtml(n.status||'COMMUNITY NOTE')} · ${escapeHtml(n.title||'Deadhead note')}</strong>${escapeHtml(n.text)}<div class="meta">${n.confirmations?`${n.confirmations} confirmation${n.confirmations===1?'':'s'} · `:''}${n.service?`${n.service==='weekday'?'Mon–Fri':'Sat–Sun'} · `:''}${n.job?`Job ${escapeHtml(n.job)}`:''}</div></div>`).join('')}
 function routeSig(r){return r?.legs?.map(x=>x.train).join('>')||''}
-function renderRoute(r,opt){if(!r)return'<div class="empty">No route found.</div>';const cls=opt.class,notes=opt.notes||[];let badges=`<span class="badge ${cls.key}">${cls.label}</span>`;if(notes.some(n=>(n.status||'').includes('VERIFIED')))badges+=`<span class="badge verified">VERIFIED INTEL</span>`;let html=`<div class="result"><div class="resulthead"><div class="resulttitle">${escapeHtml(opt.title)}</div><div class="badges">${badges}</div></div><div class="route">`;
+function renderRoute(r,opt){if(!r)return'<div class="empty">No route found.</div>';const cls=opt.class,notes=opt.notes||[],pref=routeTransferPreference(r);let badges=`<span class="badge ${cls.key}">${cls.label}</span>`;if(pref.tier===0&&r.gaps.length)badges+=`<span class="badge legal">JAMAICA HUB</span>`;else if(pref.tier===1)badges+=`<span class="badge verified">WOODSIDE HUB</span>`;else if(pref.tier===2)badges+=`<span class="badge short">INTERMEDIATE</span>`;else if(pref.tier===3)badges+=`<span class="badge tight">OPERATIONAL</span>`;if(notes.some(n=>(n.status||'').includes('VERIFIED')))badges+=`<span class="badge verified">VERIFIED INTEL</span>`;let html=`<div class="result"><div class="resulthead"><div class="resulttitle">${escapeHtml(opt.title)}</div><div class="badges">${badges}</div></div><div class="route">`;
  r.legs.forEach((leg,i)=>{html+=`<div class="leg"><div class="train">#${escapeHtml(leg.train)}</div><div class="place">${escapeHtml(stopName(leg.from))}<small>to ${escapeHtml(stopName(leg.to))}</small></div><div class="time">${fmtTime(leg.dep)}<small style="display:block;color:var(--muted);font-weight:600">→ ${fmtTime(leg.arr)}</small></div></div>`;if(i<r.gaps.length){const g=r.gaps[i],c=g.minutes>=5?'legal':g.minutes===4?'short':'tight';html+=`<div class="transfer ${c}">${g.minutes} min transfer at ${escapeHtml(stopName(g.stopId))} · ${g.minutes>=5?'legal':g.minutes===4?'short / not protected':'tight / possible'}</div>`}});
- html+='</div>';const p=[];if(opt.initialGap!=null)p.push(`${opt.initialGap} min from final working-train arrival to first deadhead`);if(opt.beforeRelease)p.push(`departs ${Math.round(opt.assignment.release-r.depart)} min before printed release`);if(opt.reportTime!=null){const margin=Math.round(opt.reportTime-r.arrive);const accessMin=opt.access?.minutes??1;p.push(`${margin} min before report`);if(accessMin>1)p.push(`${Math.round((opt.reportDeadline??opt.reportTime)-r.arrive)} min before ${opt.access.routeStation} access deadline`);else if(margin===1)p.push('meets 1-minute report rule exactly')}p.push(`Depart ${fmtTime(r.depart)}`);p.push(`arrive ${fmtTime(r.arrive)}`);html+=`<div class="summary">${p.join(' · ')}</div>${noteMarkup(notes)}<div class="routeactions"><button class="btn secondary smallbtn addNote" type="button" data-route="${escapeHtml(JSON.stringify({direction:opt.direction,train:String(r.legs[0].train),signature:routeSig(r),title:opt.title}))}">Add community note</button></div></div>`;return html}
+ html+='</div>';const p=[];if(opt.initialGap!=null)p.push(`${opt.initialGap} min from final working-train arrival to first deadhead`);if(opt.beforeRelease)p.push(`departs ${Math.round(opt.assignment.release-r.depart)} min before printed release`);if(opt.reportTime!=null){const margin=Math.round(opt.reportTime-r.arrive);const accessMin=opt.access?.minutes??1;p.push(`${margin} min before report`);if(accessMin>1)p.push(`${Math.round((opt.reportDeadline??opt.reportTime)-r.arrive)} min before ${opt.access.routeStation} access deadline`);else if(margin===1)p.push('meets 1-minute report rule exactly')}p.push(`Depart ${fmtTime(r.depart)}`);p.push(`arrive ${fmtTime(r.arrive)}`);
+ if(pref.tier>=2){const names=pref.details.filter(x=>x.tier>=2).map(x=>stopName(x.stopId));p.push(`${pref.label}${names.length?`: ${names.join(', ')}`:''}`)}
+ else if(pref.tier===1)p.push('Woodside used as secondary transfer hub');
+ else if(pref.tier===0&&r.gaps.length)p.push('Jamaica preferred transfer hub');
+ html+=`<div class="summary">${p.join(' · ')}</div>${noteMarkup(notes)}<div class="routeactions"><button class="btn secondary smallbtn addNote" type="button" data-route="${escapeHtml(JSON.stringify({direction:opt.direction,train:String(r.legs[0].train),signature:routeSig(r),title:opt.title}))}">Add community note</button></div></div>`;return html}
 function renderNotesPanel(a,date){const all=[...seedNotes,...loadLocalNotes()].filter(n=>n.job===a.job&&(!n.service||n.service===serviceType(date)));$('noteList').innerHTML=all.length?all.map(n=>`<div class="noteCard"><div class="noteTop"><div class="noteTitle">${escapeHtml(n.status||'COMMUNITY')} · Train ${escapeHtml(n.train)}</div><span class="badge ${n.status?.includes('VERIFIED')?'verified':'short'}">${escapeHtml(n.type||'note')}</span></div><div class="noteText">${escapeHtml(n.text)}</div><div class="noteMeta">${n.direction==='home'?'Going home':'To work'} · ${n.service?`${n.service==='weekday'?'Mon–Fri':'Sat–Sun'} · `:''}Job ${escapeHtml(n.job)}${n.local?' · saved only on this device':''}</div></div>`).join(''):'<div class="empty">No notes apply to this assignment/date yet. Add one from any route card.</div>'}
 function render(){
  const date=new Date($('workDate').value+'T12:00:00'),a=currentAssignment(date),home=$('homeStation').value,access=reportAccessRule(a.workStation),reportDeadline=a.report-access.minutes;
@@ -255,8 +354,13 @@ function render(){
  // trains encoded as 00:xx on the next date are not silently missed.
  const rtHome=buildRuntime(date,[0,1]);
  if(access.special){$('homeResults').innerHTML=`<div class="empty">Going-home routing from ${escapeHtml(a.workStation)} is intentionally paused in this layer. We know the report-side access rule, but have not yet defined the release-side egress rule for this yard terminal.</div>`;bindRouteButtons();return}
- const legalHome=earliestRoute(rtHome,work,origin,a.release,0,5,a.release+8*60);const practicalHome=$('showPractical').checked?earliestRoute(rtHome,work,origin,a.finalArrival,1,1,a.finalArrival+8*60):null;let homeHtml='';
- if(legalHome){homeHtml+=renderRoute(legalHome,{title:'Fastest legal route home',class:routeClass(legalHome),notes:notesFor(a,date,legalHome,'home'),direction:'home',assignment:a});}
+ const legalHomes=earliestRoutes(rtHome,work,origin,a.release,0,5,a.release+8*60,6),legalHome=legalHomes[0]||null;
+ const rawFastestHome=(()=>{const starts=startEventsAt(rtHome,work,a.release,a.release+8*60),cands=[],seen=new Set();for(const s of starts.slice(0,160)){const r=dijkstraFromStarts(rtHome,[s],origin,5,a.release+8*60,false);if(!r)continue;const sig=physicalRouteSig(r);if(seen.has(sig))continue;seen.add(sig);cands.push(r)}cands.sort((a,b)=>(a.arrive-b.arrive)||(a.depart-b.depart));return cands[0]||null})();
+ const practicalHome=$('showPractical').checked?earliestRoute(rtHome,work,origin,a.finalArrival,1,1,a.finalArrival+8*60):null;let homeHtml='';
+ if(legalHome){homeHtml+=renderRoute(legalHome,{title:'Preferred legal route home',class:routeClass(legalHome),notes:notesFor(a,date,legalHome,'home'),direction:'home',assignment:a});}
+ if(rawFastestHome&&legalHome&&physicalRouteSig(rawFastestHome)!==physicalRouteSig(legalHome)&&rawFastestHome.arrive+10<=legalHome.arrive){
+   homeHtml+=renderRoute(rawFastestHome,{title:'Faster legal alternate',class:routeClass(rawFastestHome),notes:notesFor(a,date,rawFastestHome,'home'),direction:'home',assignment:a});
+ }
  if(practicalHome){const same=legalHome&&routeSig(practicalHome)===routeSig(legalHome),gap=Math.round(practicalHome.depart-a.finalArrival),before=practicalHome.depart<a.release;if(!same&&(before||routeClass(practicalHome,gap).key!=='legal')){const ns=notesFor(a,date,practicalHome,'home');homeHtml+=renderRoute(practicalHome,{title:ns.some(n=>n.status?.includes('VERIFIED'))?'Verified practical option':'Faster practical option',class:routeClass(practicalHome,gap,before),notes:ns,direction:'home',assignment:a,initialGap:gap,beforeRelease:before});}}
  $('homeResults').innerHTML=homeHtml||'<div class="empty">No public-GTFS route home found in the search window.</div>';bindRouteButtons();
 }

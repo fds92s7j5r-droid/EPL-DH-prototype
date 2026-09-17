@@ -1,16 +1,12 @@
-EPL Deadhead Finder Sandbox v2
+EPL Deadhead Finder Sandbox v2.3
 
-GitHub Pages test build. Upload index.html at repo root.
+GitHub Pages test build. Upload index.html as the repository root page.
 
-Layer included:
-- Job 166 Crew Book schedule
-- Custom assignment mode
-- Public LIRR GTFS loader + local GTFS zip fallback
-- Legal 5+ minute transfers
-- 4-minute short and 1-3 minute tight practical routing
-- Printed release used as default legal availability going home
-- Community Deadhead Notes attached to a job + direction + first train + service pattern
-- Seeded verified Job 166 notes for 2702 and 8702
-- Local test notes persist in browser localStorage
-
-Not included yet: E Stops, equipment/Q trains, West Side Yard intercepts, Supabase/community sharing, full Crew Book job selector.
+New in v2.3:
+- Transfer-point intelligence added to route ranking.
+- Direct rides and Jamaica transfers preferred.
+- Woodside is secondary preferred hub.
+- Intermediate passenger-station transfers remain allowed but are deprioritized.
+- Employee/operational transfer points (e.g. Hillside Facility) are strongly deprioritized.
+- Faster legal intermediate alternatives can still surface when they save meaningful time.
+- Existing 5-minute legal transfer, practical routing, report-access rules, and Community Deadhead Notes retained.
