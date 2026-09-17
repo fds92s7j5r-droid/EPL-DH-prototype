@@ -3,76 +3,79 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>EPL Deadhead Finder — Job 166 Prototype</title>
+<title>EPL Deadhead Finder — Sandbox v2</title>
 <meta name="theme-color" content="#111827">
 <style>
-  :root{color-scheme:light dark;--bg:#f3f4f6;--panel:#fff;--text:#111827;--muted:#6b7280;--line:#d1d5db;--accent:#2563eb;--accent2:#1d4ed8;--good:#166534;--goodbg:#dcfce7;--warn:#92400e;--warnbg:#fef3c7;--tight:#9a3412;--tightbg:#ffedd5;--bad:#991b1b;--badbg:#fee2e2;--info:#1e40af;--infobg:#dbeafe;--shadow:0 10px 28px rgba(0,0,0,.08)}
-  @media(prefers-color-scheme:dark){:root{--bg:#0b1220;--panel:#111827;--text:#f3f4f6;--muted:#9ca3af;--line:#374151;--accent:#60a5fa;--accent2:#93c5fd;--good:#86efac;--goodbg:#143322;--warn:#fde68a;--warnbg:#3b2c0d;--tight:#fdba74;--tightbg:#3d210e;--bad:#fca5a5;--badbg:#3b1518;--info:#93c5fd;--infobg:#12294a;--shadow:0 10px 28px rgba(0,0,0,.26)}}
-  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;line-height:1.4}.wrap{max-width:880px;margin:auto;padding:18px 14px 40px}.hero{padding:8px 2px 14px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}h1{font-size:26px;line-height:1.12;margin:5px 0 8px}.sub{color:var(--muted);font-size:14px;margin:0}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}.jobgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.stat{border:1px solid var(--line);border-radius:13px;padding:10px;min-width:0}.stat b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}.stat span{font-weight:800;font-size:15px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:0 0 6px}.field input,.field select{width:100%;min-height:46px;font-size:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);padding:9px 11px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px}.btn{min-height:46px;border:0;border-radius:12px;padding:0 15px;font-weight:800;font-size:15px;cursor:pointer}.primary{background:var(--accent);color:white}.secondary{background:transparent;color:var(--text);border:1px solid var(--line)}.btn:disabled{opacity:.5;cursor:not-allowed}.status{display:flex;align-items:flex-start;gap:9px;font-size:13px;padding:10px 12px;border-radius:12px;margin-top:12px;background:var(--infobg);color:var(--info)}.dot{width:9px;height:9px;border-radius:50%;background:currentColor;margin-top:5px;flex:0 0 auto}.rulebar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.rule{border-radius:12px;padding:9px;font-size:12px;border:1px solid var(--line)}.rule strong{display:block;font-size:13px;margin-bottom:2px}.legal{background:var(--goodbg);color:var(--good)}.short{background:var(--warnbg);color:var(--warn)}.tight{background:var(--tightbg);color:var(--tight)}h2{font-size:19px;margin:0 0 4px}.sectionnote{font-size:13px;color:var(--muted);margin:0 0 10px}.result{border:1px solid var(--line);border-radius:15px;padding:13px;margin-top:10px}.resulthead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.resulttitle{font-weight:900;font-size:16px}.badge{font-size:11px;font-weight:900;border-radius:999px;padding:5px 8px;white-space:nowrap}.badge.legal{border:0}.badge.short{border:0}.badge.tight{border:0}.route{margin-top:10px}.leg{display:grid;grid-template-columns:63px 1fr auto;gap:9px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}.leg:first-child{border-top:0}.train{font-weight:900}.place{font-size:14px}.place small{display:block;color:var(--muted);font-size:12px}.time{font-variant-numeric:tabular-nums;font-weight:800;font-size:14px;text-align:right}.transfer{margin:1px 0 1px 72px;padding:5px 8px;border-radius:9px;font-size:12px;display:inline-block}.summary{font-size:13px;color:var(--muted);margin-top:8px}.empty{border:1px dashed var(--line);border-radius:14px;padding:16px;color:var(--muted);font-size:14px}.debug{font-size:12px;color:var(--muted);margin-top:12px}.source{font-size:12px;color:var(--muted)}.source code{font-size:11px}.filepick{margin-top:9px}.filepick input{max-width:100%}.hidden{display:none!important}.spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:6px}@keyframes spin{to{transform:rotate(360deg)}}
-  @media(max-width:640px){.jobgrid{grid-template-columns:1fr 1fr}.controls{grid-template-columns:1fr}.rulebar{grid-template-columns:1fr}.leg{grid-template-columns:58px 1fr auto}.card{border-radius:15px;padding:14px}.wrap{padding-left:10px;padding-right:10px}}
+:root{color-scheme:light dark;--bg:#f3f4f6;--panel:#fff;--text:#111827;--muted:#6b7280;--line:#d1d5db;--accent:#2563eb;--good:#166534;--goodbg:#dcfce7;--warn:#92400e;--warnbg:#fef3c7;--tight:#9a3412;--tightbg:#ffedd5;--info:#1e40af;--infobg:#dbeafe;--purple:#6d28d9;--purplebg:#ede9fe;--bad:#991b1b;--badbg:#fee2e2;--shadow:0 10px 28px rgba(0,0,0,.08)}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1220;--panel:#111827;--text:#f3f4f6;--muted:#9ca3af;--line:#374151;--accent:#60a5fa;--good:#86efac;--goodbg:#143322;--warn:#fde68a;--warnbg:#3b2c0d;--tight:#fdba74;--tightbg:#3d210e;--info:#93c5fd;--infobg:#12294a;--purple:#c4b5fd;--purplebg:#2b1a4d;--bad:#fca5a5;--badbg:#3b1518;--shadow:0 10px 28px rgba(0,0,0,.26)}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;line-height:1.42}.wrap{max-width:900px;margin:auto;padding:18px 12px 48px}.hero{padding:7px 3px 13px}.eyebrow{font-size:12px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}h1{font-size:27px;line-height:1.12;margin:5px 0 7px}.sub{color:var(--muted);font-size:14px;margin:0}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}h2{font-size:20px;margin:0 0 4px}.sectionnote{font-size:13px;color:var(--muted);margin:0 0 12px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:11px}.field label{display:block;font-size:12px;font-weight:850;color:var(--muted);margin:0 0 6px}.field input,.field select,.field textarea{width:100%;min-height:46px;font-size:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);padding:9px 11px}.field textarea{min-height:92px;resize:vertical}.jobgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.stat{border:1px solid var(--line);border-radius:13px;padding:10px;min-width:0}.stat b{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}.stat span{font-weight:850;font-size:15px}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.btn{min-height:44px;border:0;border-radius:12px;padding:0 14px;font-weight:850;font-size:14px;cursor:pointer}.primary{background:var(--accent);color:#fff}.secondary{background:transparent;color:var(--text);border:1px solid var(--line)}.smallbtn{min-height:36px;padding:0 11px;font-size:12px}.danger{color:var(--bad);border-color:var(--bad)}.btn:disabled{opacity:.5;cursor:not-allowed}.status{display:flex;align-items:flex-start;gap:9px;font-size:13px;padding:10px 12px;border-radius:12px;margin-top:12px;background:var(--infobg);color:var(--info)}.dot{width:9px;height:9px;border-radius:50%;background:currentColor;margin-top:5px;flex:0 0 auto}.switchrow{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.check{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:700}.check input{width:18px;height:18px}.rulebar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.rule{border-radius:12px;padding:9px;font-size:12px;border:1px solid var(--line)}.rule strong{display:block;font-size:13px;margin-bottom:2px}.legal{background:var(--goodbg);color:var(--good)}.short{background:var(--warnbg);color:var(--warn)}.tight{background:var(--tightbg);color:var(--tight)}.verified{background:var(--purplebg);color:var(--purple)}.custom{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.hidden{display:none!important}.result{border:1px solid var(--line);border-radius:15px;padding:13px;margin-top:10px}.resulthead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.resulttitle{font-weight:900;font-size:16px}.badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.badge{font-size:10px;font-weight:900;border-radius:999px;padding:5px 8px;white-space:nowrap}.route{margin-top:9px}.leg{display:grid;grid-template-columns:66px 1fr auto;gap:9px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}.leg:first-child{border-top:0}.train{font-weight:900}.place{font-size:14px}.place small{display:block;color:var(--muted);font-size:12px}.time{font-variant-numeric:tabular-nums;font-weight:850;font-size:14px;text-align:right}.transfer{margin:1px 0 1px 75px;padding:5px 8px;border-radius:9px;font-size:12px;display:inline-block}.summary{font-size:13px;color:var(--muted);margin-top:8px}.intel{border:1px solid color-mix(in srgb,var(--purple) 45%,var(--line));background:var(--purplebg);color:var(--purple);border-radius:12px;padding:10px 11px;margin-top:10px;font-size:13px}.intel strong{display:block;margin-bottom:3px}.intel .meta{opacity:.8;font-size:11px;margin-top:5px}.routeactions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.empty{border:1px dashed var(--line);border-radius:14px;padding:16px;color:var(--muted);font-size:14px}.source{font-size:12px;color:var(--muted)}.filepick{margin-top:9px}.filepick input{max-width:100%}.noteList{display:grid;gap:9px;margin-top:10px}.noteCard{border:1px solid var(--line);border-radius:13px;padding:11px}.noteTop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.noteTitle{font-weight:850;font-size:14px}.noteText{font-size:13px;margin-top:5px}.noteMeta{font-size:11px;color:var(--muted);margin-top:6px}.modalback{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;padding:12px;z-index:50}.modal{width:min(620px,100%);max-height:85vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.35)}.modal h3{margin:0 0 5px}.modal p{font-size:13px;color:var(--muted);margin:0 0 12px}.modal .controls{grid-template-columns:1fr}.spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:6px}@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:640px){.controls{grid-template-columns:1fr}.jobgrid{grid-template-columns:1fr 1fr}.rulebar{grid-template-columns:1fr}.leg{grid-template-columns:58px 1fr auto}.card{border-radius:15px;padding:14px}.wrap{padding-left:10px;padding-right:10px}.modalback{align-items:flex-end;padding:0}.modal{border-radius:18px 18px 0 0}}
 </style>
 </head>
 <body>
 <div class="wrap" id="app">
   <div class="hero">
-    <div class="eyebrow">Engineer Pay Log · Research Prototype</div>
-    <h1>Deadhead Finder — Job 166</h1>
-    <p class="sub">Public GTFS only for now. No E Stops, equipment/Q stops, or yard-intercept logic yet.</p>
+    <div class="eyebrow">Engineer Pay Log · Deadhead Finder Research</div>
+    <h1>Deadhead Finder Sandbox v2</h1>
+    <p class="sub">Official public schedules + legal transfer rules + a first Community Deadhead Notes layer. Still no E Stops, Q/equipment trains, or West Side Yard intercepts.</p>
   </div>
 
   <section class="card">
-    <h2>Job 166</h2>
-    <p class="sectionnote">Assignment details are taken from the current GO 202 Crew Book. Wednesday–Thursday are relief days.</p>
+    <h2>Assignment</h2>
+    <div class="controls">
+      <div class="field"><label for="profile">Crew Book job</label><select id="profile"><option value="166">Job 166</option><option value="custom">Custom test assignment</option></select></div>
+      <div class="field"><label for="workDate">Work date</label><input id="workDate" type="date" value="2026-09-19"></div>
+    </div>
+    <div id="customFields" class="custom hidden">
+      <div class="controls">
+        <div class="field"><label for="customJob">Job number / name</label><input id="customJob" value="TEST"></div>
+        <div class="field"><label for="workStation">Report & release station</label><select id="workStation"><option>Grand Central</option></select></div>
+        <div class="field"><label for="reportTime">Report time</label><input id="reportTime" type="time" value="15:44"></div>
+        <div class="field"><label for="finalTime">Final working-train arrival</label><input id="finalTime" type="time" value="00:32"></div>
+        <div class="field"><label for="releaseTime">Printed release</label><input id="releaseTime" type="time" value="00:37"></div>
+        <div class="field"><label for="afterMidnight">Overnight times</label><select id="afterMidnight"><option value="yes">Final arrival & release are next day</option><option value="no">Same calendar day</option></select></div>
+      </div>
+    </div>
     <div class="jobgrid" id="jobStats"></div>
   </section>
 
   <section class="card">
+    <h2>Deadhead preference</h2>
     <div class="controls">
-      <div class="field">
-        <label for="workDate">Work date</label>
-        <input id="workDate" type="date" value="2026-09-18">
-      </div>
-      <div class="field">
-        <label for="homeStation">Preferred deadhead station</label>
-        <select id="homeStation"><option>Babylon</option></select>
-      </div>
+      <div class="field"><label for="homeStation">Preferred station</label><select id="homeStation"><option>Babylon</option></select></div>
+      <div class="field"><label>Schedule source</label><button class="btn secondary" id="loadBtn" type="button" style="width:100%">Load / refresh LIRR GTFS</button></div>
     </div>
-    <div class="actions">
-      <button class="btn primary" id="findBtn" type="button">Find deadheads</button>
-      <button class="btn secondary" id="loadBtn" type="button">Load current LIRR GTFS</button>
+    <div id="dataStatus" class="status"><span class="dot"></span><span><strong>Babylon demo data is ready.</strong> The sandbox will try to load the full public LIRR GTFS automatically.</span></div>
+    <div id="fileFallback" class="filepick hidden"><div class="source">If the live feed is blocked, choose a downloaded <code>gtfslirr.zip</code>:</div><input id="gtfsFile" type="file" accept=".zip,application/zip"></div>
+    <div class="switchrow">
+      <label class="check"><input id="showPractical" type="checkbox" checked> Show non-protected practical options</label>
+      <label class="check"><input id="useCommunity" type="checkbox" checked> Use Community Deadhead Notes</label>
     </div>
-    <div id="dataStatus" class="status"><span class="dot"></span><span><strong>Babylon demo data is ready.</strong> Load the current LIRR GTFS to test other stations.</span></div>
-    <div id="fileFallback" class="filepick hidden">
-      <div class="source">If the MTA feed is blocked by the browser, choose a downloaded <code>gtfslirr.zip</code> here:</div>
-      <input id="gtfsFile" type="file" accept=".zip,application/zip">
-    </div>
-    <div class="rulebar">
-      <div class="rule legal"><strong>5+ minutes</strong>Legal transfer</div>
-      <div class="rule short"><strong>4 minutes</strong>Short / not legally protected</div>
-      <div class="rule tight"><strong>1–3 minutes</strong>Tight, but potentially workable</div>
-    </div>
+    <div class="rulebar"><div class="rule legal"><strong>5+ minutes</strong>Legal train-to-train transfer</div><div class="rule short"><strong>4 minutes</strong>Short / not protected</div><div class="rule tight"><strong>1–3 minutes</strong>Tight, but potentially workable</div></div>
   </section>
 
-  <section class="card">
-    <h2>To work</h2>
-    <p class="sectionnote" id="toWorkNote"></p>
-    <div id="toWorkResults"></div>
-  </section>
+  <section class="card"><h2>To work</h2><p class="sectionnote" id="toWorkNote"></p><div id="toWorkResults"></div></section>
+  <section class="card"><h2>Going home</h2><p class="sectionnote" id="homeNote"></p><div id="homeResults"></div></section>
 
   <section class="card">
-    <h2>Going home</h2>
-    <p class="sectionnote" id="homeNote"></p>
-    <div id="homeResults"></div>
+    <h2>Community Deadhead Notes</h2>
+    <p class="sectionnote">These notes never change the legal calculation. They explain real-world situations that the printed schedule cannot.</p>
+    <div id="noteList" class="noteList"></div>
+    <div class="actions"><button class="btn secondary smallbtn" id="clearLocalNotes" type="button">Clear my test notes</button></div>
   </section>
 
-  <section class="card">
-    <h2>Prototype assumptions</h2>
-    <div class="source">
-      <p><strong>Legal transfer:</strong> 5 minutes or more between trains. <strong>Practical routing:</strong> can also surface 4-minute and 1–3-minute connections, clearly marked as non-protected.</p>
-      <p>For the first deadhead home, the clock starts at the <strong>scheduled arrival of Job 166's final working train</strong>, not the printed release time. This lets the prototype correctly recognize the weekday 5-minute connection to 2702 and the weekend 2-minute connection to 8702.</p>
-      <p>GTFS source when live mode is loaded: MTA LIRR static feed (<code>GO202_26</code> during this research period). Public GTFS cannot see employee-only E Stops or Q/equipment options.</p>
+  <section class="card"><h2>What this layer is testing</h2><div class="source"><p><strong>Legal route home:</strong> the first public deadhead must depart at or after the printed release, and every train-to-train transfer must be at least 5 minutes.</p><p><strong>Practical route home:</strong> the sandbox may also inspect service after the final working-train arrival. Anything before printed release or with a transfer under 5 minutes is clearly marked non-protected. A verified Community Deadhead Note can explain why EPL still surfaces it.</p><p><strong>Job 166 seed note:</strong> weekend 8702 is intentionally marked as a verified real-world connection so we can test the exact scenario that inspired this layer.</p></div></section>
+</div>
+
+<div id="noteModal" class="modalback hidden" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="noteModalTitle">
+    <h3 id="noteModalTitle">Add Community Deadhead Note</h3><p id="noteRouteLabel"></p>
+    <div class="controls">
+      <div class="field"><label for="noteType">How does this work in real life?</label><select id="noteType"><option value="regular">Works regularly</option><option value="sometimes">Sometimes works</option><option value="avoid">Unreliable / avoid</option><option value="info">Other useful information</option></select></div>
+      <div class="field"><label for="noteText">Note</label><textarea id="noteText" placeholder="Example: The crew is normally clear in time and this train regularly waits for us."></textarea></div>
     </div>
-  </section>
+    <div class="actions"><button class="btn primary" id="saveNote" type="button">Save test note</button><button class="btn secondary" id="cancelNote" type="button">Cancel</button></div>
+  </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
@@ -80,23 +83,21 @@
 'use strict';
 const GTFS_URL='https://rrgtfsfeeds.s3.amazonaws.com/gtfslirr.zip';
 const $=id=>document.getElementById(id);
-const job166={
-  relief:[3,4], // Wed, Thu (JS Date 0=Sun)
-  weekday:{label:'Weekday',report:15*60+44,reportLoc:'Grand Central',finalArrival:24*60+32,release:24*60+37,finalTrain:'275'},
-  weekend:{label:'Weekend',report:15*60+51,reportLoc:'Grand Central',finalArrival:24*60+35,release:24*60+40,finalTrain:'6275'}
-};
-let mode='demo';
-let data=null;
-
+const job166={relief:[3,4],weekday:{label:'Mon–Fri',report:15*60+44,workStation:'Grand Central',finalArrival:24*60+32,release:24*60+37,finalTrain:'275'},weekend:{label:'Sat–Sun',report:15*60+51,workStation:'Grand Central',finalArrival:24*60+35,release:24*60+40,finalTrain:'6275'}};
+const seedNotes=[
+ {id:'seed-166-8702',job:'166',direction:'home',service:'weekend',station:'Grand Central',train:'8702',type:'regular',status:'EPL VERIFIED',title:'Known practical connection',text:'Job 166 crews can routinely make 8702 even though it departs at 12:37 AM, before the printed 12:40 AM weekend release. The final working train is scheduled into GCM at 12:35 AM.',confirmations:1},
+ {id:'seed-166-2702',job:'166',direction:'home',service:'weekday',station:'Grand Central',train:'2702',type:'regular',status:'EPL VERIFIED',title:'Known Job 166 connection',text:'2702 departs GCM at the printed 12:37 AM weekday release. The final working train is scheduled in at 12:32 AM, giving the full 5-minute legal transfer window.',confirmations:1}
+];
+let data=null, mode='demo', pendingRoute=null;
+const LOCAL_KEY='epl_deadhead_sandbox_notes_v2';
+function loadLocalNotes(){try{return JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]')}catch{return []}}
+function saveLocalNotes(x){localStorage.setItem(LOCAL_KEY,JSON.stringify(x))}
+function parseClock(v,next=false){if(!v)return null;const [h,m]=v.split(':').map(Number);return h*60+m+(next?1440:0)}
 function parseTime(s){if(!s)return null;const p=s.trim().split(':').map(Number);return p[0]*60+p[1]+(p[2]||0)/60}
 function fmtTime(m){if(m==null||!isFinite(m))return '—';m=Math.round(m);const day=Math.floor(m/1440);let x=((m%1440)+1440)%1440,h=Math.floor(x/60),mi=x%60;const ap=h>=12?'PM':'AM';let hh=h%12;if(!hh)hh=12;return `${hh}:${String(mi).padStart(2,'0')} ${ap}${day>0?' +1':''}`}
 function ymd(d){return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`}
-function isoDateLocal(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function serviceType(date){return (date.getDay()===0||date.getDay()===6)?'weekend':'weekday'}
-function assignmentFor(date){return job166[serviceType(date)]}
-function isRelief(date){return job166.relief.includes(date.getDay())}
-
 function parseCSV(text){
   const rows=[];let row=[],field='',q=false;
   for(let i=0;i<text.length;i++){
@@ -194,50 +195,50 @@ function earliestRoute(rt,origin,dest,baseTime,initialGap,transferGap,deadline=b
 function findStopIdByName(name){const norm=s=>String(s).toLowerCase().replace(/madison/g,'').replace(/station/g,'').replace(/\s+/g,' ').trim();const n=norm(name);let exact=null,partial=null;for(const [id,s] of data.stops){const sn=norm(s.stop_name);if(sn===n){exact=id;break}if(sn.includes(n)||n.includes(sn))partial=partial||id}return exact||partial}
 function stopName(id){return data.stops.get(id)?.stop_name||id}
 
-function routeClass(r,initialGap=null){const gs=[...r.gaps.map(x=>x.minutes)];if(initialGap!=null)gs.unshift(initialGap);const min=gs.length?Math.min(...gs):99;if(min>=5)return {key:'legal',label:'LEGAL'};if(min===4)return {key:'short',label:'SHORT / PRACTICAL'};return {key:'tight',label:'TIGHT / PRACTICAL'}}
 
-function renderRoute(r,rtClass,initialGap=null){if(!r)return '<div class="empty">No route found in the current search window.</div>';let html=`<div class="result"><div class="resulthead"><div class="resulttitle">${rtClass.title}</div><span class="badge ${rtClass.class.key}">${rtClass.class.label}</span></div><div class="route">`;
-  r.legs.forEach((leg,i)=>{html+=`<div class="leg"><div class="train">#${escapeHtml(leg.train)}</div><div class="place">${escapeHtml(stopName(leg.from))}<small>to ${escapeHtml(stopName(leg.to))}</small></div><div class="time">${fmtTime(leg.dep)}<small style="display:block;color:var(--muted);font-weight:600">→ ${fmtTime(leg.arr)}</small></div></div>`;if(i<r.gaps.length){const g=r.gaps[i];const c=g.minutes>=5?'legal':g.minutes===4?'short':'tight';html+=`<div class="transfer ${c}">${g.minutes} min transfer at ${escapeHtml(stopName(g.stopId))} · ${g.minutes>=5?'legal':g.minutes===4?'short / not protected':'tight / possible'}</div>`}});
-  html+='</div>';
-  const parts=[];if(initialGap!=null)parts.push(`${initialGap} min from final working-train arrival to first deadhead`);parts.push(`Depart ${fmtTime(r.depart)}`);parts.push(`arrive ${fmtTime(r.arrive)}`);html+=`<div class="summary">${parts.join(' · ')}</div></div>`;return html}
-
-function renderJob(date){const a=assignmentFor(date),weekend=serviceType(date)==='weekend';$('jobStats').innerHTML=`<div class="stat"><b>Pattern</b><span>${weekend?'Sat–Sun':'Mon–Fri'}</span></div><div class="stat"><b>Report GCM</b><span>${fmtTime(a.report)}</span></div><div class="stat"><b>Final arrival GCM</b><span>${fmtTime(a.finalArrival)}</span></div><div class="stat"><b>Release</b><span>${fmtTime(a.release)}</span></div>`}
-
-function updateStationSelect(prefer='Babylon'){
-  const sel=$('homeStation');const names=[...new Set([...data.stops.values()].map(s=>s.stop_name).filter(Boolean))].sort((a,b)=>a.localeCompare(b));sel.innerHTML=names.map(n=>`<option${n===prefer?' selected':''}>${escapeHtml(n)}</option>`).join('');if(!names.includes(prefer)&&names.length)sel.value=names[0]
+function currentAssignment(date){
+  if($('profile').value==='166'){const a=job166[serviceType(date)];return {job:'166',label:a.label,workStation:a.workStation,report:a.report,finalArrival:a.finalArrival,release:a.release,relief:job166.relief.includes(date.getDay()),source:'Crew Book'}}
+  const next=$('afterMidnight').value==='yes';return {job:$('customJob').value.trim()||'TEST',label:'Custom',workStation:$('workStation').value,report:parseClock($('reportTime').value,false),finalArrival:parseClock($('finalTime').value,next),release:parseClock($('releaseTime').value,next),relief:false,source:'Manual test'};
 }
-
+function updateStationSelects(preferHome='Babylon',preferWork='Grand Central'){
+  const names=[...new Set([...data.stops.values()].map(s=>s.stop_name).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  for(const id of ['homeStation','workStation']){const sel=$(id),want=id==='homeStation'?preferHome:preferWork;sel.innerHTML=names.map(n=>`<option${n===want?' selected':''}>${escapeHtml(n)}</option>`).join('');if(names.includes(want))sel.value=want}
+}
+function routeClass(r,initialGap=null,preRelease=false){const gs=[...r.gaps.map(x=>x.minutes)];if(initialGap!=null)gs.unshift(initialGap);const min=gs.length?Math.min(...gs):99;if(preRelease)return min<=3?{key:'tight',label:'TIGHT / PRACTICAL'}:{key:'short',label:'PRACTICAL'};if(min>=5)return {key:'legal',label:'LEGAL'};if(min===4)return {key:'short',label:'SHORT / PRACTICAL'};return {key:'tight',label:'TIGHT / PRACTICAL'}}
+function notesFor(a,date,r,direction){if(!$('useCommunity').checked||!r?.legs?.length)return[];const train=String(r.legs[0].train);return [...seedNotes,...loadLocalNotes()].filter(n=>n.job===a.job&&n.direction===direction&&String(n.train)===train&&(!n.service||n.service===serviceType(date)))}
+function noteMarkup(notes){if(!notes.length)return'';return notes.map(n=>`<div class="intel"><strong>${escapeHtml(n.status||'COMMUNITY NOTE')} · ${escapeHtml(n.title||'Deadhead note')}</strong>${escapeHtml(n.text)}<div class="meta">${n.confirmations?`${n.confirmations} confirmation${n.confirmations===1?'':'s'} · `:''}${n.service?`${n.service==='weekday'?'Mon–Fri':'Sat–Sun'} · `:''}${n.job?`Job ${escapeHtml(n.job)}`:''}</div></div>`).join('')}
+function routeSig(r){return r?.legs?.map(x=>x.train).join('>')||''}
+function renderRoute(r,opt){if(!r)return'<div class="empty">No route found.</div>';const cls=opt.class,notes=opt.notes||[];let badges=`<span class="badge ${cls.key}">${cls.label}</span>`;if(notes.some(n=>(n.status||'').includes('VERIFIED')))badges+=`<span class="badge verified">VERIFIED INTEL</span>`;let html=`<div class="result"><div class="resulthead"><div class="resulttitle">${escapeHtml(opt.title)}</div><div class="badges">${badges}</div></div><div class="route">`;
+ r.legs.forEach((leg,i)=>{html+=`<div class="leg"><div class="train">#${escapeHtml(leg.train)}</div><div class="place">${escapeHtml(stopName(leg.from))}<small>to ${escapeHtml(stopName(leg.to))}</small></div><div class="time">${fmtTime(leg.dep)}<small style="display:block;color:var(--muted);font-weight:600">→ ${fmtTime(leg.arr)}</small></div></div>`;if(i<r.gaps.length){const g=r.gaps[i],c=g.minutes>=5?'legal':g.minutes===4?'short':'tight';html+=`<div class="transfer ${c}">${g.minutes} min transfer at ${escapeHtml(stopName(g.stopId))} · ${g.minutes>=5?'legal':g.minutes===4?'short / not protected':'tight / possible'}</div>`}});
+ html+='</div>';const p=[];if(opt.initialGap!=null)p.push(`${opt.initialGap} min from final working-train arrival to first deadhead`);if(opt.beforeRelease)p.push(`departs ${Math.round(opt.assignment.release-r.depart)} min before printed release`);p.push(`Depart ${fmtTime(r.depart)}`);p.push(`arrive ${fmtTime(r.arrive)}`);html+=`<div class="summary">${p.join(' · ')}</div>${noteMarkup(notes)}<div class="routeactions"><button class="btn secondary smallbtn addNote" type="button" data-route="${escapeHtml(JSON.stringify({direction:opt.direction,train:String(r.legs[0].train),signature:routeSig(r),title:opt.title}))}">Add community note</button></div></div>`;return html}
+function renderNotesPanel(a,date){const all=[...seedNotes,...loadLocalNotes()].filter(n=>n.job===a.job&&(!n.service||n.service===serviceType(date)));$('noteList').innerHTML=all.length?all.map(n=>`<div class="noteCard"><div class="noteTop"><div class="noteTitle">${escapeHtml(n.status||'COMMUNITY')} · Train ${escapeHtml(n.train)}</div><span class="badge ${n.status?.includes('VERIFIED')?'verified':'short'}">${escapeHtml(n.type||'note')}</span></div><div class="noteText">${escapeHtml(n.text)}</div><div class="noteMeta">${n.direction==='home'?'Going home':'To work'} · ${n.service?`${n.service==='weekday'?'Mon–Fri':'Sat–Sun'} · `:''}Job ${escapeHtml(n.job)}${n.local?' · saved only on this device':''}</div></div>`).join(''):'<div class="empty">No notes apply to this assignment/date yet. Add one from any route card.</div>'}
 function render(){
-  const date=new Date($('workDate').value+'T12:00:00');renderJob(date);const a=assignmentFor(date);const station=$('homeStation').value;
-  $('toWorkNote').textContent=`${station} → Grand Central · must arrive by ${fmtTime(a.report)} report.`;
-  $('homeNote').textContent=`Grand Central → ${station} · final working train arrives ${fmtTime(a.finalArrival)}; printed release is ${fmtTime(a.release)}.`;
-  if(isRelief(date)){$('toWorkResults').innerHTML='<div class="empty">Wednesday–Thursday are Job 166 relief days. Pick a working date to test the assignment.</div>';$('homeResults').innerHTML='<div class="empty">No regular Job 166 tour on this relief day.</div>';return}
-  const origin=findStopIdByName(station),gcm=findStopIdByName('Grand Central');if(!origin||!gcm){$('toWorkResults').innerHTML='<div class="empty">Could not match that station in the loaded GTFS.</div>';$('homeResults').innerHTML='';return}
-  const rt=buildRuntime(date);if(!rt.events.size){$('toWorkResults').innerHTML='<div class="empty">No active GTFS service was found for this date in the loaded feed.</div>';$('homeResults').innerHTML='';return}
-  const legalIn=latestRoutes(rt,origin,gcm,a.report,5,8*60,2),practicalIn=latestRoutes(rt,origin,gcm,a.report,1,8*60,1);
-  let inHtml='';if(legalIn[0])inHtml+=renderRoute(legalIn[0],{title:'Latest legal route',class:routeClass(legalIn[0])});
-  if(practicalIn[0]&&(!legalIn[0]||practicalIn[0].depart>legalIn[0].depart+0.1)){inHtml+=renderRoute(practicalIn[0],{title:'Later practical option',class:routeClass(practicalIn[0])})}
-  if(legalIn[1])inHtml+=renderRoute(legalIn[1],{title:'Earlier legal backup',class:routeClass(legalIn[1])});if(!inHtml)inHtml='<div class="empty">No public-GTFS route found that reaches Grand Central before report in the search window.</div>';$('toWorkResults').innerHTML=inHtml;
-
-  const legalHome=earliestRoute(rt,gcm,origin,a.finalArrival,5,5,a.finalArrival+8*60);const practicalHome=earliestRoute(rt,gcm,origin,a.finalArrival,1,1,a.finalArrival+8*60);
-  let homeHtml='';if(legalHome){const ig=Math.round(legalHome.depart-a.finalArrival);homeHtml+=renderRoute(legalHome,{title:'Fastest legal route home',class:routeClass(legalHome,ig)},ig)}
-  if(practicalHome){const pig=Math.round(practicalHome.depart-a.finalArrival),same=legalHome&&practicalHome.legs.map(x=>x.train).join('>')===legalHome.legs.map(x=>x.train).join('>');if(!same){homeHtml+=renderRoute(practicalHome,{title:'Faster practical option',class:routeClass(practicalHome,pig)},pig)}}
-  if(!homeHtml)homeHtml='<div class="empty">No public-GTFS route home found in the search window.</div>';$('homeResults').innerHTML=homeHtml;
+ const date=new Date($('workDate').value+'T12:00:00'),a=currentAssignment(date),home=$('homeStation').value;
+ $('customFields').classList.toggle('hidden',$('profile').value!=='custom');
+ $('jobStats').innerHTML=`<div class="stat"><b>Job</b><span>${escapeHtml(a.job)}</span></div><div class="stat"><b>Report</b><span>${fmtTime(a.report)}</span></div><div class="stat"><b>Final arrival</b><span>${fmtTime(a.finalArrival)}</span></div><div class="stat"><b>Release</b><span>${fmtTime(a.release)}</span></div>`;
+ $('toWorkNote').textContent=`${home} → ${a.workStation} · must arrive by ${fmtTime(a.report)} report.`;
+ $('homeNote').textContent=`${a.workStation} → ${home} · final working train arrives ${fmtTime(a.finalArrival)}; printed release is ${fmtTime(a.release)}.`;
+ renderNotesPanel(a,date);
+ if(a.relief){$('toWorkResults').innerHTML='<div class="empty">This is a relief day for Job 166. Pick a working date.</div>';$('homeResults').innerHTML='<div class="empty">No regular Job 166 tour on this date.</div>';bindRouteButtons();return}
+ const origin=findStopIdByName(home),work=findStopIdByName(a.workStation);if(!origin||!work){$('toWorkResults').innerHTML='<div class="empty">Could not match one of those stations in the loaded GTFS. Load the full feed or choose another station.</div>';$('homeResults').innerHTML='';bindRouteButtons();return}
+ const rt=buildRuntime(date);if(!rt.events.size){$('toWorkResults').innerHTML='<div class="empty">No active GTFS service found for this date in the loaded feed.</div>';$('homeResults').innerHTML='';bindRouteButtons();return}
+ const legalIn=latestRoutes(rt,origin,work,a.report,5,8*60,2),practicalIn=latestRoutes(rt,origin,work,a.report,1,8*60,1);let inHtml='';
+ if(legalIn[0])inHtml+=renderRoute(legalIn[0],{title:'Latest legal route',class:routeClass(legalIn[0]),notes:notesFor(a,date,legalIn[0],'to'),direction:'to',assignment:a});
+ if($('showPractical').checked&&practicalIn[0]&&(!legalIn[0]||practicalIn[0].depart>legalIn[0].depart+.1))inHtml+=renderRoute(practicalIn[0],{title:'Later practical option',class:routeClass(practicalIn[0]),notes:notesFor(a,date,practicalIn[0],'to'),direction:'to',assignment:a});
+ if(legalIn[1])inHtml+=renderRoute(legalIn[1],{title:'Earlier legal backup',class:routeClass(legalIn[1]),notes:notesFor(a,date,legalIn[1],'to'),direction:'to',assignment:a});
+ $('toWorkResults').innerHTML=inHtml||'<div class="empty">No public-GTFS route found before report in the search window.</div>';
+ const legalHome=earliestRoute(rt,work,origin,a.release,0,5,a.release+8*60);const practicalHome=$('showPractical').checked?earliestRoute(rt,work,origin,a.finalArrival,1,1,a.finalArrival+8*60):null;let homeHtml='';
+ if(legalHome){homeHtml+=renderRoute(legalHome,{title:'Fastest legal route home',class:routeClass(legalHome),notes:notesFor(a,date,legalHome,'home'),direction:'home',assignment:a});}
+ if(practicalHome){const same=legalHome&&routeSig(practicalHome)===routeSig(legalHome),gap=Math.round(practicalHome.depart-a.finalArrival),before=practicalHome.depart<a.release;if(!same&&(before||routeClass(practicalHome,gap).key!=='legal')){const ns=notesFor(a,date,practicalHome,'home');homeHtml+=renderRoute(practicalHome,{title:ns.some(n=>n.status?.includes('VERIFIED'))?'Verified practical option':'Faster practical option',class:routeClass(practicalHome,gap,before),notes:ns,direction:'home',assignment:a,initialGap:gap,beforeRelease:before});}}
+ $('homeResults').innerHTML=homeHtml||'<div class="empty">No public-GTFS route home found in the search window.</div>';bindRouteButtons();
 }
-
-async function loadFromArrayBuffer(buf,label){
-  if(typeof JSZip==='undefined')throw new Error('JSZip did not load. Check internet access to jsDelivr.');const zip=await JSZip.loadAsync(buf);async function txt(name,required=true){const f=zip.file(name);if(!f){if(required)throw new Error(`${name} is missing from the GTFS zip.`);return ''}return f.async('text')}
-  const [stopsT,tripsT,stopTimesT,calT,calDatesT,feedT]=await Promise.all([txt('stops.txt'),txt('trips.txt'),txt('stop_times.txt'),txt('calendar.txt',false),txt('calendar_dates.txt',false),txt('feed_info.txt',false)]);
-  data=buildData({stops:parseCSV(stopsT),trips:parseCSV(tripsT),stopTimes:parseCSV(stopTimesT),calendar:calT?parseCSV(calT):[],calendarDates:calDatesT?parseCSV(calDatesT):[]});mode='live';const feed=feedT?parseCSV(feedT)[0]:null;const old=$('homeStation').value;updateStationSelect(old);$('dataStatus').innerHTML=`<span class="dot"></span><span><strong>Live GTFS loaded.</strong> ${escapeHtml(feed?.feed_version||label||'LIRR static schedule')} · ${data.tripMeta.size.toLocaleString()} trips · ${data.stops.size} stops.</span>`;$('fileFallback').classList.add('hidden');render();
-}
-
-async function loadRemote(){const b=$('loadBtn');b.disabled=true;b.innerHTML='<span class="spinner"></span>Loading GTFS';$('dataStatus').innerHTML='<span class="dot"></span><span>Downloading and parsing the public LIRR GTFS feed…</span>';try{const r=await fetch(GTFS_URL,{cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);await loadFromArrayBuffer(await r.arrayBuffer(),'MTA LIRR GTFS')}catch(err){console.error(err);$('dataStatus').innerHTML=`<span class="dot"></span><span><strong>Live feed could not load in this browser.</strong> Babylon demo mode still works. You can also choose a downloaded GTFS zip below. <small>${escapeHtml(err.message)}</small></span>`;$('fileFallback').classList.remove('hidden')}finally{b.disabled=false;b.textContent='Load current LIRR GTFS'}}
-
-$('loadBtn').addEventListener('click',loadRemote);$('findBtn').addEventListener('click',render);$('workDate').addEventListener('change',render);$('homeStation').addEventListener('change',render);$('gtfsFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{await loadFromArrayBuffer(await f.arrayBuffer(),f.name)}catch(err){$('dataStatus').innerHTML=`<span class="dot"></span><span><strong>Could not read that GTFS file:</strong> ${escapeHtml(err.message)}</span>`}});
-
-data=makeDemo();updateStationSelect('Babylon');render();
-// Try live GTFS automatically after first paint. Demo remains available if this fails.
-setTimeout(loadRemote,250);
+function bindRouteButtons(){document.querySelectorAll('.addNote').forEach(b=>b.addEventListener('click',()=>{try{pendingRoute=JSON.parse(b.dataset.route)}catch{pendingRoute=null}if(!pendingRoute)return;const a=currentAssignment(new Date($('workDate').value+'T12:00:00'));$('noteRouteLabel').textContent=`Job ${a.job} · ${pendingRoute.direction==='home'?'going home':'to work'} · first train ${pendingRoute.train}`;$('noteText').value='';$('noteModal').classList.remove('hidden');$('noteModal').setAttribute('aria-hidden','false')}))}
+function closeModal(){$('noteModal').classList.add('hidden');$('noteModal').setAttribute('aria-hidden','true');pendingRoute=null}
+function saveNote(){if(!pendingRoute)return;const text=$('noteText').value.trim();if(!text){$('noteText').focus();return}const date=new Date($('workDate').value+'T12:00:00'),a=currentAssignment(date),notes=loadLocalNotes();notes.push({id:'local-'+Date.now(),job:a.job,direction:pendingRoute.direction,service:serviceType(date),station:a.workStation,train:pendingRoute.train,type:$('noteType').value,status:'MY TEST NOTE',title:$('noteType').selectedOptions[0].textContent,text,confirmations:1,local:true});saveLocalNotes(notes);closeModal();render()}
+async function loadFromArrayBuffer(buf,label){if(typeof JSZip==='undefined')throw new Error('JSZip did not load.');const zip=await JSZip.loadAsync(buf);async function txt(name,required=true){const f=zip.file(name);if(!f){if(required)throw new Error(`${name} is missing from the GTFS zip.`);return''}return f.async('text')}const [stopsT,tripsT,stopTimesT,calT,calDatesT,feedT]=await Promise.all([txt('stops.txt'),txt('trips.txt'),txt('stop_times.txt'),txt('calendar.txt',false),txt('calendar_dates.txt',false),txt('feed_info.txt',false)]);data=buildData({stops:parseCSV(stopsT),trips:parseCSV(tripsT),stopTimes:parseCSV(stopTimesT),calendar:calT?parseCSV(calT):[],calendarDates:calDatesT?parseCSV(calDatesT):[]});mode='live';const feed=feedT?parseCSV(feedT)[0]:null;const h=$('homeStation').value,w=$('workStation').value;updateStationSelects(h,w);$('dataStatus').innerHTML=`<span class="dot"></span><span><strong>Full GTFS loaded.</strong> ${escapeHtml(feed?.feed_version||label||'LIRR schedule')} · ${data.tripMeta.size.toLocaleString()} trips · ${data.stops.size} stops.</span>`;$('fileFallback').classList.add('hidden');render()}
+async function loadRemote(){const b=$('loadBtn');b.disabled=true;b.innerHTML='<span class="spinner"></span>Loading GTFS';$('dataStatus').innerHTML='<span class="dot"></span><span>Downloading and parsing the public LIRR GTFS feed…</span>';try{const r=await fetch(GTFS_URL,{cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);await loadFromArrayBuffer(await r.arrayBuffer(),'MTA LIRR GTFS')}catch(err){console.error(err);$('dataStatus').innerHTML=`<span class="dot"></span><span><strong>Live feed could not load in this browser.</strong> Babylon demo mode still works. You can also select a downloaded GTFS zip below. <small>${escapeHtml(err.message)}</small></span>`;$('fileFallback').classList.remove('hidden')}finally{b.disabled=false;b.textContent='Load / refresh LIRR GTFS'}}
+$('profile').addEventListener('change',render);$('workDate').addEventListener('change',render);$('homeStation').addEventListener('change',render);$('workStation').addEventListener('change',render);$('reportTime').addEventListener('change',render);$('finalTime').addEventListener('change',render);$('releaseTime').addEventListener('change',render);$('afterMidnight').addEventListener('change',render);$('customJob').addEventListener('change',render);$('showPractical').addEventListener('change',render);$('useCommunity').addEventListener('change',render);$('loadBtn').addEventListener('click',loadRemote);$('gtfsFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{await loadFromArrayBuffer(await f.arrayBuffer(),f.name)}catch(err){$('dataStatus').innerHTML=`<span class="dot"></span><span><strong>Could not read that GTFS file:</strong> ${escapeHtml(err.message)}</span>`}});$('cancelNote').addEventListener('click',closeModal);$('saveNote').addEventListener('click',saveNote);$('noteModal').addEventListener('click',e=>{if(e.target===$('noteModal'))closeModal()});$('clearLocalNotes').addEventListener('click',()=>{if(confirm('Clear only the Community Deadhead Notes you added in this sandbox?')){saveLocalNotes([]);render()}});
+data=makeDemo();updateStationSelects('Babylon','Grand Central');render();setTimeout(loadRemote,250);
 })();
 </script>
 </body>
