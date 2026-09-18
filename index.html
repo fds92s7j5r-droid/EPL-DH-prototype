@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>EPL Deadhead Finder — Sandbox v2.4</title>
+<title>EPL Deadhead Finder — Sandbox v2.6</title>
 <meta name="theme-color" content="#111827">
 <style>
 :root{color-scheme:light dark;--bg:#f3f4f6;--panel:#fff;--text:#111827;--muted:#6b7280;--line:#d1d5db;--accent:#2563eb;--good:#166534;--goodbg:#dcfce7;--warn:#92400e;--warnbg:#fef3c7;--tight:#9a3412;--tightbg:#ffedd5;--info:#1e40af;--infobg:#dbeafe;--purple:#6d28d9;--purplebg:#ede9fe;--bad:#991b1b;--badbg:#fee2e2;--shadow:0 10px 28px rgba(0,0,0,.08)}
@@ -16,7 +16,7 @@
 <div class="wrap" id="app">
   <div class="hero">
     <div class="eyebrow">Engineer Pay Log · Deadhead Finder Research</div>
-    <h1>Deadhead Finder Sandbox v2.5</h1>
+    <h1>Deadhead Finder Sandbox v2.6</h1>
     <p class="sub">Official public schedules + legal transfer rules + transfer-point intelligence + Community Deadhead Notes. Still no E Stops, Q/equipment trains, or West Side Yard intercepts.</p>
   </div>
 
@@ -69,7 +69,7 @@
     <div class="actions"><button class="btn secondary smallbtn" id="clearLocalNotes" type="button">Clear my test notes</button></div>
   </section>
 
-  <section class="card"><h2>What this layer is testing</h2><div class="source"><p><strong>Legal timing:</strong> every train-to-train transfer must be at least 5 minutes. A normal station report requires arrival at least 1 minute before report. West Side Yard reports require arrival at Penn 20 minutes before report; Jamaica Storage Yard reports require arrival at Jamaica 20 minutes before report.</p><p><strong>Transfer intelligence:</strong> legality and route preference are separate. EPL prefers direct rides and Jamaica transfers first, Woodside second, then intermediate passenger stations. Employee/operational locations such as Hillside Facility are heavily deprioritized as transfer points. An intermediate transfer can still surface when it is the only workable route or meaningfully useful.</p><p><strong>Practical routing:</strong> the sandbox may also inspect service after the final working-train arrival. Anything before printed release or with a transfer under 5 minutes is clearly marked non-protected. A verified Community Deadhead Note can explain why EPL still surfaces it.</p><p><strong>Service-day crossover:</strong> assignment rules follow the day the job reports, but going-home train patterns and Community Deadhead Notes follow the actual calendar day after midnight. Example: a Sunday Job 166 tour comes home on Monday service, so 2702—not the weekend 8702 note—applies.</p><p><strong>Job 166 seed note:</strong> weekend 8702 is intentionally marked as a verified real-world connection so we can test the exact scenario that inspired this layer.</p></div></section>
+  <section class="card"><h2>What this layer is testing</h2><div class="source"><p><strong>Legal timing:</strong> every train-to-train transfer must be at least 5 minutes. A normal station report requires arrival at least 1 minute before report. West Side Yard reports require arrival at Penn 20 minutes before report; Jamaica Storage Yard reports require arrival at Jamaica 20 minutes before report.</p><p><strong>Transfer intelligence:</strong> legality and route preference are separate. EPL prefers direct rides and Jamaica transfers first, Woodside second, then intermediate passenger stations. Employee/operational locations such as Hillside Facility are heavily deprioritized as transfer points. An intermediate transfer can still surface when it is the only workable route or meaningfully useful.</p><p><strong>Practical routing:</strong> the sandbox may also inspect service after the final working-train arrival. Anything before printed release or with a transfer under 5 minutes is clearly marked non-protected. A verified Community Deadhead Note can explain why EPL still surfaces it.</p><p><strong>Recommendation ranking:</strong> if a practical route has verified intelligence and gets you home at least 30 minutes sooner than the fully protected option, the sandbox promotes it to <em>Recommended practical route</em> while keeping the legal route immediately below as the fully protected alternative.</p><p><strong>Service-day crossover:</strong> assignment rules follow the day the job reports, but going-home train patterns and Community Deadhead Notes follow the actual calendar day after midnight. Example: a Sunday Job 166 tour comes home on Monday service, so 2702—not the weekend 8702 note—applies.</p><p><strong>Job 166 seed note:</strong> weekend 8702 is intentionally marked as a verified real-world connection so we can test the exact scenario that inspired this layer.</p></div></section>
 </div>
 
 <div id="noteModal" class="modalback hidden" aria-hidden="true">
@@ -365,11 +365,21 @@ function render(){
  const legalHomes=earliestRoutes(rtHome,work,origin,a.release,0,5,a.release+8*60,6),legalHome=legalHomes[0]||null;
  const rawFastestHome=(()=>{const starts=startEventsAt(rtHome,work,a.release,a.release+8*60),cands=[],seen=new Set();for(const s of starts.slice(0,160)){const r=dijkstraFromStarts(rtHome,[s],origin,5,a.release+8*60,false);if(!r)continue;const sig=physicalRouteSig(r);if(seen.has(sig))continue;seen.add(sig);cands.push(r)}cands.sort((a,b)=>(a.arrive-b.arrive)||(a.depart-b.depart));return cands[0]||null})();
  const practicalHome=$('showPractical').checked?earliestRoute(rtHome,work,origin,a.finalArrival,1,1,a.finalArrival+8*60):null;let homeHtml='';
- if(legalHome){homeHtml+=renderRoute(legalHome,{title:'Preferred legal route home',class:routeClass(legalHome),notes:notesFor(a,date,legalHome,'home'),direction:'home',assignment:a});}
- if(rawFastestHome&&legalHome&&physicalRouteSig(rawFastestHome)!==physicalRouteSig(legalHome)&&rawFastestHome.arrive+10<=legalHome.arrive){
-   homeHtml+=renderRoute(rawFastestHome,{title:'Faster legal alternate',class:routeClass(rawFastestHome),notes:notesFor(a,date,rawFastestHome,'home'),direction:'home',assignment:a});
+ const practicalMeta=(()=>{if(!practicalHome)return null;const same=legalHome&&routeSig(practicalHome)===routeSig(legalHome),gap=Math.round(practicalHome.depart-a.finalArrival),before=practicalHome.depart<a.release,cls=routeClass(practicalHome,gap,before),notes=notesFor(a,date,practicalHome,'home'),verified=notes.some(n=>n.status?.includes('VERIFIED')),show=!same&&(before||cls.key!=='legal'),savings=legalHome?Math.round(legalHome.arrive-practicalHome.arrive):null;return {same,gap,before,cls,notes,verified,show,savings};})();
+ // A verified real-world connection may become the recommended route when the fully
+ // protected alternative is dramatically worse. 30 minutes is intentionally a sandbox
+ // threshold so we can tune it from field testing without ever changing the legal math.
+ const promoteVerifiedPractical=!!(practicalMeta?.show&&practicalMeta.verified&&(!legalHome||practicalMeta.savings>=30));
+ if(promoteVerifiedPractical){
+   homeHtml+=renderRoute(practicalHome,{title:'Recommended practical route',class:practicalMeta.cls,notes:practicalMeta.notes,direction:'home',assignment:a,initialGap:practicalMeta.gap,beforeRelease:practicalMeta.before});
  }
- if(practicalHome){const same=legalHome&&routeSig(practicalHome)===routeSig(legalHome),gap=Math.round(practicalHome.depart-a.finalArrival),before=practicalHome.depart<a.release;if(!same&&(before||routeClass(practicalHome,gap).key!=='legal')){const ns=notesFor(a,date,practicalHome,'home');homeHtml+=renderRoute(practicalHome,{title:ns.some(n=>n.status?.includes('VERIFIED'))?'Verified practical option':'Faster practical option',class:routeClass(practicalHome,gap,before),notes:ns,direction:'home',assignment:a,initialGap:gap,beforeRelease:before});}}
+ if(legalHome){homeHtml+=renderRoute(legalHome,{title:promoteVerifiedPractical?'Fully protected alternative':'Preferred legal route home',class:routeClass(legalHome),notes:notesFor(a,date,legalHome,'home'),direction:'home',assignment:a});}
+ if(rawFastestHome&&legalHome&&physicalRouteSig(rawFastestHome)!==physicalRouteSig(legalHome)&&rawFastestHome.arrive+10<=legalHome.arrive){
+   homeHtml+=renderRoute(rawFastestHome,{title:promoteVerifiedPractical?'Faster protected alternate':'Faster legal alternate',class:routeClass(rawFastestHome),notes:notesFor(a,date,rawFastestHome,'home'),direction:'home',assignment:a});
+ }
+ if(practicalMeta?.show&&!promoteVerifiedPractical){
+   homeHtml+=renderRoute(practicalHome,{title:practicalMeta.verified?'Verified practical option':'Faster practical option',class:practicalMeta.cls,notes:practicalMeta.notes,direction:'home',assignment:a,initialGap:practicalMeta.gap,beforeRelease:practicalMeta.before});
+ }
  $('homeResults').innerHTML=homeHtml||'<div class="empty">No public-GTFS route home found in the search window.</div>';bindRouteButtons();
 }
 function bindRouteButtons(){document.querySelectorAll('.addNote').forEach(b=>b.addEventListener('click',()=>{try{pendingRoute=JSON.parse(b.dataset.route)}catch{pendingRoute=null}if(!pendingRoute)return;const a=currentAssignment(new Date($('workDate').value+'T12:00:00'));$('noteRouteLabel').textContent=`Job ${a.job} · ${pendingRoute.direction==='home'?'going home':'to work'} · first train ${pendingRoute.train}`;$('noteText').value='';$('noteModal').classList.remove('hidden');$('noteModal').setAttribute('aria-hidden','false')}))}
