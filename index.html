@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>EPL Deadhead Finder — Sandbox v2.3</title>
+<title>EPL Deadhead Finder — Sandbox v2.4</title>
 <meta name="theme-color" content="#111827">
 <style>
 :root{color-scheme:light dark;--bg:#f3f4f6;--panel:#fff;--text:#111827;--muted:#6b7280;--line:#d1d5db;--accent:#2563eb;--good:#166534;--goodbg:#dcfce7;--warn:#92400e;--warnbg:#fef3c7;--tight:#9a3412;--tightbg:#ffedd5;--info:#1e40af;--infobg:#dbeafe;--purple:#6d28d9;--purplebg:#ede9fe;--bad:#991b1b;--badbg:#fee2e2;--shadow:0 10px 28px rgba(0,0,0,.08)}
@@ -16,7 +16,7 @@
 <div class="wrap" id="app">
   <div class="hero">
     <div class="eyebrow">Engineer Pay Log · Deadhead Finder Research</div>
-    <h1>Deadhead Finder Sandbox v2.3</h1>
+    <h1>Deadhead Finder Sandbox v2.4</h1>
     <p class="sub">Official public schedules + legal transfer rules + transfer-point intelligence + Community Deadhead Notes. Still no E Stops, Q/equipment trains, or West Side Yard intercepts.</p>
   </div>
 
@@ -37,6 +37,7 @@
       </div>
     </div>
     <div class="jobgrid" id="jobStats"></div>
+    <div id="assignmentStatus" class="status hidden"></div>
   </section>
 
   <section class="card">
@@ -339,10 +340,11 @@ function render(){
  const date=new Date($('workDate').value+'T12:00:00'),a=currentAssignment(date),home=$('homeStation').value,access=reportAccessRule(a.workStation),reportDeadline=a.report-access.minutes;
  $('customFields').classList.toggle('hidden',$('profile').value!=='custom');
  $('jobStats').innerHTML=`<div class="stat"><b>Job</b><span>${escapeHtml(a.job)}</span></div><div class="stat"><b>Report</b><span>${fmtTime(a.report)}</span></div><div class="stat"><b>Final arrival</b><span>${fmtTime(a.finalArrival)}</span></div><div class="stat"><b>Release</b><span>${fmtTime(a.release)}</span></div>`;
+ const assignmentStatus=$('assignmentStatus');
+ if(a.relief&&a.job==='166'){assignmentStatus.classList.remove('hidden');assignmentStatus.innerHTML='<span class="dot"></span><span><strong>Regular engineer relief day.</strong> Job 166 still exists and operates. Deadhead Finder is routing for whoever is working the assignment today, including a relief or extra engineer.</span>';}else{assignmentStatus.classList.add('hidden');assignmentStatus.innerHTML='';}
  $('toWorkNote').textContent=`${home} → ${a.workStation} · report ${fmtTime(a.report)}; must reach ${access.routeStation} by ${fmtTime(reportDeadline)} (${access.label}).`;
  $('homeNote').textContent=`${a.workStation} → ${home} · final working train arrives ${fmtTime(a.finalArrival)}; printed release is ${fmtTime(a.release)}.`;
  renderNotesPanel(a,date);
- if(a.relief){$('toWorkResults').innerHTML='<div class="empty">This is a relief day for Job 166. Pick a working date.</div>';$('homeResults').innerHTML='<div class="empty">No regular Job 166 tour on this date.</div>';bindRouteButtons();return}
  const origin=findStopIdByName(home),work=findStopIdByName(access.routeStation);if(!origin||!work){$('toWorkResults').innerHTML='<div class="empty">Could not match one of those stations in the loaded GTFS. Load the full feed or choose another station.</div>';$('homeResults').innerHTML='';bindRouteButtons();return}
  const rt=buildRuntime(date,[0]);if(!rt.events.size){$('toWorkResults').innerHTML='<div class="empty">No active GTFS service found for this date in the loaded feed.</div>';$('homeResults').innerHTML='';bindRouteButtons();return}
  const legalIn=latestRoutes(rt,origin,work,reportDeadline,5,8*60,2),practicalIn=latestRoutes(rt,origin,work,reportDeadline,1,8*60,1);let inHtml='';
